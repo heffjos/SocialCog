@@ -130,7 +130,7 @@ for i = StartRun:EndRun
     end
     
     for k = 1:size(RunDesign, 1)
-        Picture = fullfile(pwd, 'EmoNogo_HNF/Faces', RunDesign{k, IMAGE});
+        Picture = fullfile(pwd, 'FaceImages', RunDesign{k, IMAGE});
         Rest = fullfile(pwd, 'ContextImages', RunDesign{k, RESTIMAGE});
         ImRest = imread(Rest, 'jpg');
         ImPicture = imread(Picture, 'bmp');
