@@ -95,7 +95,7 @@ Screen('TextColor', Window, White);
 for i = StartRun:EndRun
     RunIdx = [Design{:, RUN}]' == i;
     RunDesign = Design(RunIdx, :);
-    KbEventFlush
+    KbEventFlush;
 
     % handle file naming
     OutName = sprintf('%s_Run_%02d_%s', Participant, i, ...
