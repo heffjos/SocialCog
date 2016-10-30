@@ -63,6 +63,7 @@ White = [255 255 255];
 Black = [0 0 0];
 Grey = White * 0.5;
 
+% we want X = Left-Right, Y = top-bottom
 [Window, Rect] = Screen('OpenWindow', ScreenNumber, Grey); % open Window on Screen
 [ScreenXpixels, ScreenYpixels] = Screen('WindowSize', Window); % get Window size
 [XCenter, YCenter] = RectCenter(Rect); % get the center of the coordinate Window
@@ -133,7 +134,16 @@ for i = StartRun:EndRun
         Rest = fullfile(pwd, 'ContextImages', RunDesign{k, RESTIMAGE});
         ImRest = imread(Rest, 'jpg');
         ImPicture = imread(Picture, 'bmp');
-        [PictureX PictureY] = size(ImPicture);
+
+        [PictureY, PictureX] = size(ImPicture);
+        ImBotLoc = floor(PictureY/2) + YCenter;
+        ImTopLoc = YCenter - ceil(PictureY/2);
+        ImRightLoc = floor(PictureX/2) + XCenter;
+        ImLeftLoc = XCenter - ceil(PictureX/2);
+        FromXBar = ImLeftLoc - 90;
+        FromYBar = ImBotLoc + 15;
+        ToXBar = ImRightLoc + 90;
+        ToYBar = FromYBar;
 
         Tex = Screen('MakeTexture', Window, ImRest);
         Screen('DrawTexture', Window, Tex, [], [], 0);
@@ -142,21 +152,26 @@ for i = StartRun:EndRun
 
         Tex = Screen('MakeTexture', Window, ImPicture);
         Screen('DrawTexture', Window, Tex, [], [], 0);
-        % Screen('DrawTexture', Window, Tex, [], [1 1 PictureY PictureX], 0);
-        % DrawFormattedText(Window, ...
-        %     'Negative', jk
         [~, CondOnset] = Screen('Flip', Window);
         RunDesign{k, CONDONSET} = CondOnset - BeginTime;
+        WaitSecs(1);
+
+        Screen('DrawTexture', Window, Tex, [], [], 0);
+        Screen('FillRect', Window, [0 0 255/2], ...
+            [FromXBar FromYBar ToXBar (ToYBar + 15)]);
+        Screen('DrawText', Window, 'Negative', FromXBar - 203, FromYBar - 15); 
+        Screen('DrawText', Window, 'Positive', ToXBar + 3, FromYBar - 15); 
+        [~, BarOnset] = Screen('Flip', Window);
         KbQueueStart(DeviceIndex);
         NoResponse = 1;
-        while GetSecs - CondOnset < 1
+        while GetSecs - BarOnset < 4
             if NoResponse
                 [Pressed, FirstPress] = KbQueueCheck(DeviceIndex);
                 if Pressed
                     FirstPress(FirstPress == 0) = nan;
                     [RT, Idx] = min(FirstPress);
                     RunDesign{k, CONDRESPONSE} = KbNames{Idx};
-                    RunDesign{k, CONDRT} = RT - CondOnset;
+                    RunDesign{k, CONDRT} = RT - BarOnset;
                     NoResponse = 0;
                     fprintf(1, 'Trial: %d, RT: %0.4f, Response: %s', ...
                         k, RunDesign{k, CONDRT}, RunDesign{k, CONDRESPONSE});
