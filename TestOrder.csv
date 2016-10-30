@@ -1,0 +1,9 @@
+Run,Block,Trial,Condition,Image,RestImage
+1,1,1,positive,06F_FE_O.BMP,Context001.jpg
+1,1,2,positive,06F_HA_O.BMP,Context002.jpg
+1,2,5,negative,45M_NE_C.BMP,Context003.jpg
+1,2,6,negative,45M_HA_O.BMP,Context004.jpg
+2,9,35,positive,06F_NE_C.BMP,Context001.jpg
+2,9,36,positive,08F_FE_O.BMP,Context002.jpg
+2,10,39,negative,45M_FE_O.BMP,Context003.jpg
+2,10,40,negative,43M_NE_C.BMP,Context004.jpg
