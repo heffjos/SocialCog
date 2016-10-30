@@ -153,15 +153,13 @@ for i = StartRun:EndRun
             if NoResponse
                 [Pressed, FirstPress] = KbQueueCheck(DeviceIndex);
                 if Pressed
-                    NonZero = FirstPress ~= 0;
-                    FirstPress = FirstPress(NonZero);
-                    TmpNames = KbNames(NonZero);
+                    FirstPress(FirstPress == 0) = nan;
                     [RT, Idx] = min(FirstPress);
-                    RunDesign{k, CONDRESPONSE} = TmpNames{Idx};
+                    RunDesign{k, CONDRESPONSE} = KbNames{Idx};
                     RunDesign{k, CONDRT} = RT - CondOnset;
                     NoResponse = 0;
                     fprintf(1, 'Trial: %d, RT: %0.4f, Response: %s', ...
-                        k, RT, RunDesign{k, CONDRESPONSE});
+                        k, RunDesign{k, CONDRT}, RunDesign{k, CONDRESPONSE});
                     KbQueueStop(DeviceIndex);
                     KbQueueFlush(DeviceIndex);
                 end
