@@ -190,7 +190,7 @@ for i = StartRun:EndRun
         fprintf(OutFid, '%s,', RunDesign{DesignIdx, IMAGE});
         fprintf(OutFid, '%s,', RunDesign{DesignIdx, RESTIMAGE});
         fprintf(OutFid, '%0.4f,', RunDesign{DesignIdx, CONDONSET});
-        fprintf(OutFid, '%d,', RunDesign{DesignIdx, CONDRESPONSE});
+        fprintf(OutFid, '%s,', RunDesign{DesignIdx, CONDRESPONSE});
         fprintf(OutFid, '%0.4f\n', RunDesign{DesignIdx, CONDRT});
     end
     fclose(OutFid);
