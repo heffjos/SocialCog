@@ -173,7 +173,7 @@ for i = StartRun:EndRun
                     RunDesign{k, CONDRESPONSE} = KbNames{Idx};
                     RunDesign{k, CONDRT} = RT - BarOnset;
                     NoResponse = 0;
-                    fprintf(1, 'Trial: %d, RT: %0.4f, Response: %s', ...
+                    fprintf(1, 'Trial: %d, RT: %0.4f, Response: %s\n', ...
                         k, RunDesign{k, CONDRT}, RunDesign{k, CONDRESPONSE});
                     KbQueueStop(DeviceIndex);
                     KbQueueFlush(DeviceIndex);
