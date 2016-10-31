@@ -148,6 +148,7 @@ for i = StartRun:EndRun
         Tex = Screen('MakeTexture', Window, ImRest);
         Screen('DrawTexture', Window, Tex, [], [], 0);
         Screen('Flip', Window);
+        Screen('Close', Tex);
         WaitSecs(2);
 
         Tex = Screen('MakeTexture', Window, ImPicture);
@@ -162,6 +163,7 @@ for i = StartRun:EndRun
         Screen('DrawText', Window, 'Negative', FromXBar - 203, FromYBar - 15); 
         Screen('DrawText', Window, 'Positive', ToXBar + 3, FromYBar - 15); 
         [~, BarOnset] = Screen('Flip', Window);
+        Screen('Close', Tex);
         KbQueueStart(DeviceIndex);
         NoResponse = 1;
         while GetSecs - BarOnset < 4
