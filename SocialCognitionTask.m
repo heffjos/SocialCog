@@ -73,7 +73,7 @@ Screen('BlendFunction', Window, 'GL_SRC_ALPHA', 'GL_ONE_MINUS_SRC_ALPHA');
 
 % set up keyboard
 KbName('UnifyKeyNames');
-DeviceIndex = 7;
+DeviceIndex = [];
 KbNames = KbName('KeyNames');
 % KeyNamesOfInterest = {'1!', '2@', '3#', '4$', '5%', ...
 %     '6^', '7&', '8*', '9(', '0)', ...
