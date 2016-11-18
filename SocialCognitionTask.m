@@ -96,6 +96,8 @@ Grey = White * 0.5;
 
 % we want X = Left-Right, Y = top-bottom
 [Window, Rect] = Screen('OpenWindow', ScreenNumber, Grey); % open Window on Screen
+PriorityLevel = MaxPriority(Window);
+Priority(PriorityLevel);
 [ScreenXpixels, ScreenYpixels] = Screen('WindowSize', Window); % get Window size
 [XCenter, YCenter] = RectCenter(Rect); % get the center of the coordinate Window
 
@@ -180,8 +182,8 @@ for i = StartRun:EndRun
 
         Tex = Screen('MakeTexture', Window, ImContext);
         Screen('DrawTexture', Window, Tex, [], [], 0);
-        Screen('Flip', Window);
-        [~, ContextOnset] = Screen('Close', Tex);
+        [~, ContextOnset] = Screen('Flip', Window);
+        Screen('Close', Tex);
         RunDesign{k, CONTEXTONSET} = ContextOnset - BeginTime;
         WaitSecs(2);
 
@@ -251,7 +253,7 @@ for i = StartRun:EndRun
         fprintf(OutFid, '%d,', i);
         fprintf(OutFid, '%d,', RunDesign{DesignIdx, BLOCK});
         fprintf(OutFid, '%d,', RunDesign{DesignIdx, TRIAL});
-        fprintf(OutFid, '%d,', RunDesign{DesignIdx, BLCOKSPLIT});
+        fprintf(OutFid, '%d,', RunDesign{DesignIdx, BLOCKSPLIT});
         fprintf(OutFid, '%s,', RunDesign{DesignIdx, CONDITION});
         fprintf(OutFid, '%d,', RunDesign{DesignIdx, FACENUM});
         fprintf(OutFid, '%s,', RunDesign{DesignIdx, FACEGENDER});
@@ -262,7 +264,7 @@ for i = StartRun:EndRun
         fprintf(OutFid, '%s,', RunDesign{DesignIdx, CONTEXTSUBCATEGORY});
         fprintf(OutFid, '%s,', RunDesign{DesignIdx, CONTEXTFILENAME});
         fprintf(OutFid, '%0.4f,', RunDesign{DesignIdx, FACEONSET});
-        fprintf(OutFid, 's,', RunDesign{DesginIdx, FACERESPONSE});
+        fprintf(OutFid, 's,', RunDesign{DesignIdx, FACERESPONSE});
         fprintf(OutFid, '%0.4f,', RunDesign{DesignIdx, FACERT});
         fprintf(OutFid, '%0.4f\n', RunDesign{DesignIdx, CONTEXTONSET});
     end
