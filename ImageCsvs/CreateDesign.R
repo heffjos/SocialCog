@@ -4,25 +4,46 @@ set.seed(1234567890)
 
 # randomize block order for each run - look into counter balancing later
 Blocks <- read.csv("Blocks.csv")
-Blocks <- select(Blocks, Run, BlockType, NumFear, NumHappy, Context)
+Blocks <- select(Blocks, Run, BlockType, NumFear, NumHappy, Context, 
+  NumFearFemale, NumHappyFemale, NumFearMale, NumHappyMale)
+Order <- c(sample(10), sample(11:20))
+Order <- c(sample(10), sample(11:20))
+Order <- c(sample(10), sample(11:20))
 Order <- c(sample(10), sample(11:20))
 Blocks <- Blocks[Order, ]
 Blocks <- Blocks %>%
   group_by(Run) %>%
   mutate(BlockNum=1:n())
 
-Faces <- read.csv("Faces.csv")
-Faces <- Faces %>%
+OrigFaces <- read.csv("Faces.csv") %>%
   filter(!grepl("2[78]M", FileName))
-Faces <- Faces[sample.int(nrow(Faces)), ]
-AvailFear <- (1:nrow(Faces))[Faces$Expression == "NeutFear"]
-AvailHappy <- (1:nrow(Faces))[Faces$Expression == "NeutHappy"]
-cat(sprintf("length(AvailFear): %d\n", length(AvailFear)))
-cat(sprintf("length(AvailHappy): %d\n\n", length(AvailHappy)))
+Faces <- OrigFaces
+AvailFemale <- (1:nrow(OrigFaces))[Faces$Gender == "Female"]
+AvailMale <- (1:nrow(OrigFaces))[Faces$Gender == "Male"]
+for (i in 1:nrow(OrigFaces)) {
+  if (i %% 2 == 1 && length(AvailFemale > 0)) {
+    TmpIdx <- sample.int(length(AvailFemale), 1)
+    Faces[i, ] <- OrigFaces[AvailFemale[TmpIdx], ]
+    AvailFemale <- AvailFemale[-1*TmpIdx]
+  } else {
+    TmpIdx <- sample.int(length(AvailMale), 1)
+    Faces[i, ] <- OrigFaces[AvailMale[TmpIdx], ]
+    AvailMale <- AvailMale[-1*TmpIdx]
+  }
+}
+
+AvailFemaleFear <- which(Faces$Expression == "NeutFear" & 
+  Faces$Gender == "Female")
+AvailFemaleHappy <- which(Faces$Expression == "NeutHappy" &
+  Faces$Gender == "Female")
+AvailMaleFear <- which(Faces$Expression == "NeutFear" &
+  Faces$Gender == "Male")
+AvailMaleHappy <- which(Faces$Expression == "NeutHappy" &
+  Faces$Gender == "Male")
 
 Contextual <- read.csv("Contextual.csv")
-AvailNeg <- (1:nrow(Contextual))[Contextual$Category == "Unpleasant"]
-AvailPos <- (1:nrow(Contextual))[Contextual$Category == "Pleasant"]
+AvailNeg <- which(Contextual$Category == "Unpleasant")
+AvailPos <- which(Contextual$Category == "Pleasant")
 
 DefaultBlock <- data.frame(
   Run=rep(NA, 4),
@@ -50,9 +71,28 @@ for (iBlock in 1:nrow(Blocks)) {
   RunNum <- Blocks$Run[iBlock]
   BlockNum <- Blocks$BlockNum[iBlock]
 
-  FearIdx <- sample.int(length(AvailFear), Blocks$NumFear[iBlock])
-  HappyIdx <- sample.int(length(AvailHappy), Blocks$NumHappy[iBlock])
-  FaceIdx <- c(AvailFear[FearIdx], AvailHappy[HappyIdx])
+  FemaleFearIdx = c()
+  FemaleHappyIdx = c()
+  MaleFearIdx = c()
+  MaleHappyIdx = c()
+  if (Blocks$NumFearFemale[iBlock] != 0) 
+    FemaleFearIdx <- sample.int(length(AvailFemaleFear), 
+      Blocks$NumFearFemale[iBlock])
+  if (Blocks$NumHappyFemale[iBlock] != 0)
+    FemaleHappyIdx <- sample.int(length(AvailFemaleHappy), 
+      Blocks$NumHappyFemale[iBlock])
+  if (Blocks$NumFearMale[iBlock] != 0)
+    MaleFearIdx <- sample.int(length(AvailMaleFear), 
+      Blocks$NumFearMale[iBlock])
+  if (Blocks$NumHappyMale[iBlock] != 0)
+    MaleHappyIdx <- sample.int(length(AvailMaleHappy),
+      Blocks$NumHappyMale[iBlock])
+
+  FaceIdx <- c(AvailFemaleFear[FemaleFearIdx],
+    AvailFemaleHappy[FemaleHappyIdx],
+    AvailMaleFear[MaleFearIdx],
+    AvailMaleHappy[MaleHappyIdx]
+  )
 
   if (Blocks$Context[iBlock] == "Negative") {
     TmpIdx <- sample.int(length(AvailNeg), 4)
@@ -77,40 +117,35 @@ for (iBlock in 1:nrow(Blocks)) {
   TmpBlock$ContextCategory <- Blocks$Context[iBlock]
   TmpBlock$ContextSubCategory <- Contextual$SubCategory[ContextIdx]
   TmpBlock$ContextFileName <- Contextual$FileName[ContextIdx]
- 
+
   cat(sprintf("Block: %d\n", iBlock)) 
-  AvailFear <- AvailFear[-1*FearIdx]
-  cat(sprintf("length(AvailFear): %d length(FearIdx): %d\n", 
-    length(AvailFear), length(FearIdx)))
-  AvailHappy <- AvailHappy[-1*HappyIdx]
-  cat(sprintf("length(AvailHappy): %d length(HappyIdx): %d\n\n", 
-    length(AvailHappy), length(HappyIdx)))
+  if (length(FemaleFearIdx) != 0)
+    AvailFemaleFear <- AvailFemaleFear[-1*FemaleFearIdx]
+  cat(sprintf("length(AvailFemaleFear): %d length(FemaleFearIdx): %d\n", 
+    length(AvailFemaleFear), length(FemaleFearIdx)))
+  if (length(FemaleHappyIdx) != 0)
+    AvailFemaleHappy <- AvailFemaleHappy[-1*FemaleHappyIdx]
+  cat(sprintf("length(AvailFemaleHappy): %d length(FemaleHappyIdx): %d\n", 
+    length(AvailFemaleHappy), length(FemaleHappyIdx)))
+  if (length(MaleFearIdx) != 0)
+    AvailMaleFear <- AvailMaleFear[-1*MaleFearIdx]
+  cat(sprintf("length(AvailMaleFear): %d length(MaleFearIdx): %d\n", 
+    length(AvailMaleFear), length(MaleFearIdx)))
+  if (length(MaleHappyIdx) != 0)
+    AvailMaleHappy <- AvailMaleHappy[-1*MaleHappyIdx]
+  cat(sprintf("length(AvailMaleHappy): %d length(MaleHappyIdx): %d\n\n", 
+    length(AvailMaleHappy), length(MaleHappyIdx)))
 
   Design[[RunNum]][[BlockNum]] <- TmpBlock[sample.int(nrow(TmpBlock)), ]
 } 
 
 Design <- bind_rows(lapply(Design, bind_rows))
+Design <- Design %>% 
+  group_by(Run) %>%
+  mutate(TrialNum=1:n())
 
-  
+GenderSummary <- Design %>%
+  group_by(Run, BlockNum) %>%
+  summarize(NumFemale=sum(FaceGender=="Female"), NumMale=sum(FaceGender=="Male"))
 
-  
-
-  
-  
-  
-  
-  
-
-# list of runs
-#   list of blocks
-#   one block = standard data frame
-# initialize variables:
-#   available negative faces
-#   available positive faces
-#   available negative context
-#   available positive conxtest
-
-
-# for each run
-#   for each block
-#     randomly 
+write.csv(Design, file="./Design.csv", row.names=F, quote=F)
