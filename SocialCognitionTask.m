@@ -5,10 +5,28 @@ clearvars;
 clear all;
 
 if isunix
-    InScan = input('Scan? (1:Yes, 0:No): ');
+    InScan = -1;
+    StartRun = -1;
+    EndRun = -1;
+    Testing = -1;
+
+    while ~any(InScan == [1 0])
+        InScan = input('Scan? (1:Yes, 0:No): ');
+    end
+
     Participant = input('Participant ID: ', 's');
-    StartRun = input('Start run: 1 - 2: ');
-    EndRun = input('End run: 1 - 2: ');
+
+    while ~any(StartRun == [1 2])
+        StartRun = input('Start run: 1 - 2: ');
+    end
+
+    while ~any(EndRun == [1 2])
+        EndRun = input('End run: 1 - 2: ');
+    end
+
+    while ~any(Testing == [1 0])
+        Testing = input('Testing? (1:Yes, 0:No: ');
+    end
 else
     Responses = inputdlg({'Scan (1:Yes, 0:No):', ...
         'Participant ID:', 'Start run: 1 - 2:', 'End run: 1 - 2:'});
@@ -16,6 +34,7 @@ else
     Participant = Responses{2};
     StartRun = str2num(Responses{3});
     EndRun = str2num(Responses{4});
+    Testing = 0;
 end
 
 if InScan == 0
@@ -26,11 +45,15 @@ OutDir = fullfile(pwd, 'Responses', Participant);
 mkdir(OutDir);
 
 % read in design
-DesignFid = fopen('TestOrder.csv', 'r');
-Tmp = textscan(DesignFid, '%f%f%f%s%s%s', 'Delimiter', ',', 'Headerlines', 1);
+if Testing
+    DesignFid = fopen('TestOrder.csv', 'r');
+else
+    DesignFid = foepn('Design.csv', 'r');
+end
+Tmp = textscan(DesignFid, '%f%f%f%f%s%f%s%s%s%s%s%s%s', 'Delimiter', ',', 'Headerlines', 1);
 fclose(DesignFid);
-% more columns: ConditionOnset,ConditionResponse,ConditionRT
-Design = cell(numel(Tmp{1}), numel(Tmp) + 3);
+% more columns: FaceOnset,FaceResponse,FaceRT,ContextOnset
+Design = cell(numel(Tmp{1}), numel(Tmp) + 4);
 for i = 1:numel(Tmp)
     for k = 1:numel(Tmp{1})
         if iscell(Tmp{i})
@@ -46,12 +69,20 @@ clear Tmp
 RUN = 1;
 BLOCK = 2;
 TRIAL = 3;
-CONDITION = 4;
-IMAGE = 5;
-RESTIMAGE = 6;
-CONDONSET = 7;
-CONDRESPONSE = 8;
-CONDRT = 9;
+BLOCKSPLIT = 4;
+CONDITION = 5;
+FACENUM = 6;
+FACEGENDER = 7;
+FACEEXPRESSION = 8;
+FACEFILENAME = 9;
+FACERACE = 10;
+CONTEXTCATEGORY = 11;
+CONTEXTSUBCATEGORY = 12;
+CONTEXTFILENAME = 13;
+FACEONSET = 14;
+FACERESPONSE = 15;
+FACERT = 16;
+CONTEXTONSET = 17;
 
 PsychDefaultSetup(2); % default settings
 Screen('Preference', 'VisualDebugLevel', 1); % skip introduction Screen
@@ -130,10 +161,12 @@ for i = StartRun:EndRun
     end
     
     for k = 1:size(RunDesign, 1)
-        Picture = fullfile(pwd, 'FaceImages', RunDesign{k, IMAGE});
-        Rest = fullfile(pwd, 'ContextImages', RunDesign{k, RESTIMAGE});
-        ImRest = imread(Rest, 'jpg');
-        ImPicture = imread(Picture, 'bmp');
+        Picture = fullfile(pwd, 'Faces', RunDesign{k, FACEGENDER}, ...
+            RunDesign{k, FACEFILENAME});
+        Context = fullfile(pwd, 'Contextual', RunDesign{k, CONTEXTCATEGORY}, ...
+            RunDesign{k, CONTEXTSUBCATEGORY}, RunDesign{k, CONTEXTFILENAME});
+        ImContext = imread(Context, 'jpg');
+        ImPicture = imread(Picture, 'png');
 
         [PictureY, PictureX] = size(ImPicture);
         ImBotLoc = floor(PictureY/2) + YCenter;
@@ -145,16 +178,17 @@ for i = StartRun:EndRun
         ToXBar = ImRightLoc + 90;
         ToYBar = FromYBar;
 
-        Tex = Screen('MakeTexture', Window, ImRest);
+        Tex = Screen('MakeTexture', Window, ImContext);
         Screen('DrawTexture', Window, Tex, [], [], 0);
         Screen('Flip', Window);
-        Screen('Close', Tex);
+        [~, ContextOnset] = Screen('Close', Tex);
+        RunDesign{k, CONTEXTONSET} = ContextOnset - BeginTime;
         WaitSecs(2);
 
         Tex = Screen('MakeTexture', Window, ImPicture);
         Screen('DrawTexture', Window, Tex, [], [], 0);
         [~, CondOnset] = Screen('Flip', Window);
-        RunDesign{k, CONDONSET} = CondOnset - BeginTime;
+        RunDesign{k, FACEONSET} = CondOnset - BeginTime;
         WaitSecs(1);
 
         Screen('DrawTexture', Window, Tex, [], [], 0);
@@ -172,15 +206,21 @@ for i = StartRun:EndRun
                 if Pressed
                     FirstPress(FirstPress == 0) = nan;
                     [RT, Idx] = min(FirstPress);
-                    RunDesign{k, CONDRESPONSE} = KbNames{Idx};
-                    RunDesign{k, CONDRT} = RT - BarOnset;
+                    RunDesign{k, FACERESPONSE} = KbNames{Idx};
+                    RunDesign{k, FACERT} = RT - BarOnset;
                     NoResponse = 0;
                     fprintf(1, 'Trial: %d, RT: %0.4f, Response: %s\n', ...
-                        k, RunDesign{k, CONDRT}, RunDesign{k, CONDRESPONSE});
+                        k, RunDesign{k, FACERT}, RunDesign{k, FACERESPONSE});
                     KbQueueStop(DeviceIndex);
                     KbQueueFlush(DeviceIndex);
                 end
             end
+        end
+
+        if NoResponse
+            fprintf(1, 'Trial: %d, RT:  nan, Response: nan\n', k);
+            RunDesign{k, FACERESPONSE} = nan;
+            RunDesign{k, FACERT} = nan;
         end
     end
 
@@ -190,25 +230,41 @@ for i = StartRun:EndRun
     fprintf(OutFid, ...
         ['Participant,', ...
         'Run,', ...
-        'Block,', ...
-        'Trial,', ...
+        'BlockNum,', ...
+        'TrialNum,', ...
+        'BlockSplit,', ...
         'Condition,', ...
-        'Image,', ...
-        'RestImage,', ...
-        'ConditionOnset,', ...
-        'ConditionResposne,', ...
-        'ConditionRt\n']);
+        'FaceNum,', ...
+        'FaceGender,', ...
+        'FaceExpression,', ...
+        'FaceFileName,', ...
+        'FaceRace,', ...
+        'ContextCategory,', ...
+        'ContextSubCategory,', ...
+        'ContextFileName,', ...
+        'FaceOnset,', ...
+        'FaceResponse,', ...
+        'FaceRt,', ...
+        'ContextOnset\n']);
     for DesignIdx = 1:size(RunDesign, 1)
         fprintf(OutFid, '%s,', Participant);
         fprintf(OutFid, '%d,', i);
         fprintf(OutFid, '%d,', RunDesign{DesignIdx, BLOCK});
         fprintf(OutFid, '%d,', RunDesign{DesignIdx, TRIAL});
+        fprintf(OutFid, '%d,', RunDesign{DesignIdx, BLCOKSPLIT});
         fprintf(OutFid, '%s,', RunDesign{DesignIdx, CONDITION});
-        fprintf(OutFid, '%s,', RunDesign{DesignIdx, IMAGE});
-        fprintf(OutFid, '%s,', RunDesign{DesignIdx, RESTIMAGE});
-        fprintf(OutFid, '%0.4f,', RunDesign{DesignIdx, CONDONSET});
-        fprintf(OutFid, '%s,', RunDesign{DesignIdx, CONDRESPONSE});
-        fprintf(OutFid, '%0.4f\n', RunDesign{DesignIdx, CONDRT});
+        fprintf(OutFid, '%d,', RunDesign{DesignIdx, FACENUM});
+        fprintf(OutFid, '%s,', RunDesign{DesignIdx, FACEGENDER});
+        fprintf(OutFid, '%s,', RunDesign{DesignIdx, FACEEXPRESSION});
+        fprintf(OutFid, '%s,', RunDesign{DesignIdx, FACEFILENAME});
+        fprintf(OutFid, '%s,', RunDesign{DesignIdx, FACERACE});
+        fprintf(OutFid, '%s,', RunDesign{DesignIdx, CONTEXTCATEGORY});
+        fprintf(OutFid, '%s,', RunDesign{DesignIdx, CONTEXTSUBCATEGORY});
+        fprintf(OutFid, '%s,', RunDesign{DesignIdx, CONTEXTFILENAME});
+        fprintf(OutFid, '%0.4f,', RunDesign{DesignIdx, FACEONSET});
+        fprintf(OutFid, 's,', RunDesign{DesginIdx, FACERESPONSE});
+        fprintf(OutFid, '%0.4f,', RunDesign{DesignIdx, FACERT});
+        fprintf(OutFid, '%0.4f\n', RunDesign{DesignIdx, CONTEXTONSET});
     end
     fclose(OutFid);
 end
