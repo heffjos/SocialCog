@@ -114,7 +114,7 @@ for (iBlock in 1:nrow(Blocks)) {
   TmpBlock$FaceExpression <- Faces$Expression[FaceIdx]
   TmpBlock$FaceFileName <- Faces$FileName[FaceIdx]
   TmpBlock$FaceRace <- Faces$Race[FaceIdx]
-  TmpBlock$ContextCategory <- Blocks$Context[iBlock]
+  TmpBlock$ContextCategory <- Contextual$Category[ContextIdx]
   TmpBlock$ContextSubCategory <- Contextual$SubCategory[ContextIdx]
   TmpBlock$ContextFileName <- Contextual$FileName[ContextIdx]
 
@@ -148,4 +148,4 @@ GenderSummary <- Design %>%
   group_by(Run, BlockNum) %>%
   summarize(NumFemale=sum(FaceGender=="Female"), NumMale=sum(FaceGender=="Male"))
 
-write.csv(Design, file="./Design.csv", row.names=F, quote=F)
+write.csv(Design, file="../Design.csv", row.names=F, quote=F)
