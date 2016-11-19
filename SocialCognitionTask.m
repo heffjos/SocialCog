@@ -199,9 +199,14 @@ function SocialCognitionTask()
         for k = 1:size(RunDesign, 1)
             % Tex = Screen('MakeTexture', Window, ImContext{i}{k});
             Screen('DrawTexture', Window, TexContext{i}{k}, [], [], 0);
-            [~, ContextOnset] = Screen('Flip', Window, Stop);
+            [ContextVbl, ContextOnset] = Screen('Flip', Window, Stop);
             % Screen('Close', Tex);
             RunDesign{k, CONTEXTONSET} = ContextOnset - BeginTime;
+
+            % Tex = Screen('MakeTexture', Window, ImFace{i}{k});
+            Screen('DrawTexture', Window, TexFace{i}{k}, [], [], 0);
+            [CondVbl, CondOnset] = Screen('Flip', Window, ContextVbl + 2, 1);
+            RunDesign{k, FACEONSET} = CondOnset - BeginTime;
 
             % create values for bar and text location
             [PictureY, PictureX] = size(ImFace{i}{1});
@@ -214,21 +219,16 @@ function SocialCognitionTask()
             FromYBar = ImBotLoc + 15;
             ToXBar = ImRightLoc + 90;
             ToYBar = FromYBar;
-
-            % Tex = Screen('MakeTexture', Window, ImFace{i}{k});
-            Screen('DrawTexture', Window, TexFace{i}{k}, [], [], 0);
-            [~, CondOnset] = Screen('Flip', Window, ContextOnset + 2, 1);
-            RunDesign{k, FACEONSET} = CondOnset - BeginTime;
     
             Screen('FillRect', Window, [0 0 255/2], ...
                 [FromXBar FromYBar ToXBar (ToYBar + 15)]);
             Screen('DrawText', Window, 'Negative', FromXBar - 203, FromYBar - 15); 
             Screen('DrawText', Window, 'Positive', ToXBar + 3, FromYBar - 15); 
-            [~, BarOnset] = Screen('Flip', Window, CondOnset + 1);
+            [BarVbl, BarOnset] = Screen('Flip', Window, CondVbl + 1);
             % Screen('Close', Tex);
 
             KbQueueStart(DeviceIndex);
-            Stop = BarOnset + 4;
+            Stop = BarVbl + 4;
             while GetSecs < Stop
                 [Pressed, FirstPress] = KbQueueCheck(DeviceIndex);
                 if Pressed
