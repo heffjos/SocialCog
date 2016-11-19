@@ -115,6 +115,7 @@ function SocialCognitionTask()
     Priority(PriorityLevel);
     [ScreenXpixels, ScreenYpixels] = Screen('WindowSize', Window); % get Window size
     [XCenter, YCenter] = RectCenter(Rect); % get the center of the coordinate Window
+    Refresh = Screen('GetFlipInterval', Window);
     
     % Set up alpha-blending for smooth (anti-aliased) lines
     Screen('BlendFunction', Window, 'GL_SRC_ALPHA', 'GL_ONE_MINUS_SRC_ALPHA');
@@ -199,14 +200,14 @@ function SocialCognitionTask()
         for k = 1:size(RunDesign, 1)
             % Tex = Screen('MakeTexture', Window, ImContext{i}{k});
             Screen('DrawTexture', Window, TexContext{i}{k}, [], [], 0);
-            [ContextVbl, ContextOnset] = Screen('Flip', Window, Stop);
+            ContextVbl = Screen('Flip', Window, Stop);
             % Screen('Close', Tex);
-            RunDesign{k, CONTEXTONSET} = ContextOnset - BeginTime;
+            RunDesign{k, CONTEXTONSET} = ContextVbl - BeginTime;
 
             % Tex = Screen('MakeTexture', Window, ImFace{i}{k});
             Screen('DrawTexture', Window, TexFace{i}{k}, [], [], 0);
-            [CondVbl, CondOnset] = Screen('Flip', Window, ContextVbl + 2, 1);
-            RunDesign{k, FACEONSET} = CondOnset - BeginTime;
+            CondVbl = Screen('Flip', Window, ContextVbl + 2 - Refresh, 1);
+            RunDesign{k, FACEONSET} = CondVbl - BeginTime;
 
             % create values for bar and text location
             [PictureY, PictureX] = size(ImFace{i}{1});
@@ -224,18 +225,18 @@ function SocialCognitionTask()
                 [FromXBar FromYBar ToXBar (ToYBar + 15)]);
             Screen('DrawText', Window, 'Negative', FromXBar - 203, FromYBar - 15); 
             Screen('DrawText', Window, 'Positive', ToXBar + 3, FromYBar - 15); 
-            [BarVbl, BarOnset] = Screen('Flip', Window, CondVbl + 1);
+            BarVbl = Screen('Flip', Window, CondVbl + 1 - Refresh);
             % Screen('Close', Tex);
 
             KbQueueStart(DeviceIndex);
-            Stop = BarVbl + 4;
+            Stop = BarVbl + 4 - Refresh;
             while GetSecs < Stop
                 [Pressed, FirstPress] = KbQueueCheck(DeviceIndex);
                 if Pressed
                     FirstPress(FirstPress == 0) = nan;
                     [RT, Idx] = min(FirstPress);
                     RunDesign{k, FACERESPONSE} = KbNames{Idx};
-                    RunDesign{k, FACERT} = RT - BarOnset;
+                    RunDesign{k, FACERT} = RT - BarVbl;
                     break;
                 end
                 WaitSecs(0.01);
