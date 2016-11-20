@@ -1,0 +1,3 @@
+# SocialCog
+
+tmp
