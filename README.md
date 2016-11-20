@@ -44,3 +44,10 @@
   * number of male and female faces per block
 * ImageCsvs/CreateDesign.R - creates Design.csv
 
+**Other**
+* screen reslution is 1024 x 768 (Will this be the in scanner display resolution?)
+* operating system is Windows 7
+* Response collection device: [PST BRU 5 Buttons](http://www.psychology-software-tools.mybigcommerce.com/celeritas-fiber-optic-response-unit-right-hand-5-buttons/)
+ * probably only using right hand
+ * keys are probably mapped to home row not number pad, you can check matlab command prompt response outputs to confirm this
+
