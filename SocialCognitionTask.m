@@ -2,12 +2,7 @@ function SocialCognitionTask()
 
     % Clear the workspace and the Screen
     sca;
-    close all;
-    if exist('matlab', 'builtin') == 5
-        clearvars;
-    end
-    clear all;
-    
+
     if isunix
         InScan = -1;
         StartRun = -1;
@@ -324,6 +319,6 @@ function SocialCognitionTask()
     
     % close everything
     KbQueueRelease(DeviceIndex);
-    Screen('CloseAll');
+    sca;
     Priority(0);
 end
