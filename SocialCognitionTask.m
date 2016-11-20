@@ -142,6 +142,7 @@ function SocialCognitionTask()
     Screen('TextColor', Window, White);
 
     % preload images
+    PictureY = 0;
     fprintf(1, 'Preloading images. This may take some time.\n');
     for iRun = 1:2
         RunIdx = [Design{:, RUN}]' == iRun;
@@ -151,8 +152,14 @@ function SocialCognitionTask()
                 RunDesign{iTrial, CONTEXTSUBCATEGORY}, RunDesign{iTrial, CONTEXTFILENAME});
             Face = fullfile(pwd, 'Faces', RunDesign{iTrial, FACEGENDER}, ...
                 RunDesign{iTrial, FACEFILENAME});
+
             ImContext{iRun}{iTrial} = imread(Context, 'jpg');
             ImFace{iRun}{iTrial} = imread(Face, 'png');
+
+            if size(ImFace{iRun}{iTrial}, 1) > PictureY
+                PictureY = size(ImFace{iRun}{iTrial}, 1);
+            end
+
             TexContext{iRun}{iTrial} = Screen('MakeTexture', Window, ...
                 ImContext{iRun}{iTrial});
             TexFace{iRun}{iTrial} = Screen('MakeTexture', Window, ...
@@ -210,7 +217,7 @@ function SocialCognitionTask()
             RunDesign{k, FACEONSET} = CondVbl - BeginTime;
 
             % create values for bar and text location
-            [PictureY, PictureX] = size(ImFace{i}{1});
+            % [PictureY, PictureX] = size(ImFace{i}{k});
             PictureX = 256;
             ImBotLoc = floor(PictureY/2) + YCenter;
             ImTopLoc = YCenter - ceil(PictureY/2);
