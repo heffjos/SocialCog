@@ -2,6 +2,7 @@ function SocialCognitionTask()
 
     % Clear the workspace and the Screen
     sca;
+    DeviceIndex = [];
 
     if isunix
         InScan = -1;
@@ -117,7 +118,6 @@ function SocialCognitionTask()
     
     % set up keyboard
     KbName('UnifyKeyNames');
-    DeviceIndex = [];
     KbNames = KbName('KeyNames');
     KeyNamesOfInterest = {'1!', '2@', '3#', '4$', '5%', ...
         '6^', '7&', '8*', '9(', '0)', ...
@@ -129,6 +129,7 @@ function SocialCognitionTask()
     for i = 1:numel(KeyNamesOfInterest)
         KeysOfInterest(KbName(KeyNamesOfInterest{i})) = 1;
     end
+    clear i
     KbQueueCreate(DeviceIndex, KeysOfInterest);
     
     % set default text type for window
@@ -136,9 +137,9 @@ function SocialCognitionTask()
     Screen('TextSize', Window, 50);
     Screen('TextColor', Window, White);
 
-    % preload images
+    % preload images and assign values for bar and text location
     PictureY = 0;
-    fprintf(1, 'Preloading images. This may take some time.\n');
+    fprintf(1, 'Preloading images. This will take some time.\n');
     for iRun = 1:2
         RunIdx = [Design{:, RUN}]' == iRun;
         RunDesign = Design(RunIdx, :);
@@ -162,6 +163,15 @@ function SocialCognitionTask()
         end
     end
     clear iRun iTrial
+    PictureX = 256;
+    ImBotLoc = floor(PictureY/2) + YCenter;
+    ImTopLoc = YCenter - ceil(PictureY/2);
+    ImRightLoc = floor(PictureX/2) + XCenter;
+    ImLeftLoc = XCenter - ceil(PictureX/2);
+    FromXBar = ImLeftLoc - 90;
+    FromYBar = ImBotLoc + 15;
+    ToXBar = ImRightLoc + 90;
+    ToYBar = FromYBar;
 
     % run the experiment
     for i = StartRun:EndRun
@@ -196,9 +206,8 @@ function SocialCognitionTask()
             end
         end
     
-        BeginTime = GetSecs;
-   
         Stop = 0; 
+        BeginTime = GetSecs;
         for k = 1:size(RunDesign, 1)
             % Tex = Screen('MakeTexture', Window, ImContext{i}{k});
             Screen('DrawTexture', Window, TexContext{i}{k}, [], [], 0);
@@ -211,18 +220,7 @@ function SocialCognitionTask()
             CondVbl = Screen('Flip', Window, ContextVbl + 2 - Refresh, 1);
             RunDesign{k, FACEONSET} = CondVbl - BeginTime;
 
-            % create values for bar and text location
             % [PictureY, PictureX] = size(ImFace{i}{k});
-            PictureX = 256;
-            ImBotLoc = floor(PictureY/2) + YCenter;
-            ImTopLoc = YCenter - ceil(PictureY/2);
-            ImRightLoc = floor(PictureX/2) + XCenter;
-            ImLeftLoc = XCenter - ceil(PictureX/2);
-            FromXBar = ImLeftLoc - 90;
-            FromYBar = ImBotLoc + 15;
-            ToXBar = ImRightLoc + 90;
-            ToYBar = FromYBar;
-    
             Screen('FillRect', Window, [0 0 255/2], ...
                 [FromXBar FromYBar ToXBar (ToYBar + 15)]);
             Screen('DrawText', Window, 'Negative', FromXBar - 203, FromYBar - 15); 
