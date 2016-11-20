@@ -246,6 +246,7 @@ function SocialCognitionTask()
             fprintf(1, 'Run: %d, Trial: %d, RT: %0.4f, Response: %s\n', ...
                 i, k, RunDesign{k, FACERT}, RunDesign{k, FACERESPONSE});
         end
+        WaitSecs('UntilTime', Stop);
     
         % now write out run design
         save(OutMat, 'RunDesign');
