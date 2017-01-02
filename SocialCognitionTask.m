@@ -101,15 +101,14 @@ function SocialCognitionTask()
     ScreenNumber = max(Screens);
     
     % Define black and white
-    White = [255 255 255];
+    White = [1 1 1];
     Black = [0 0 0];
     Grey = White * 0.5;
     
     % we want X = Left-Right, Y = top-bottom
-    [Window, Rect] = Screen('OpenWindow', ScreenNumber, Black); % open Window on Screen
+    [Window, Rect] = PsychImaging('OpenWindow', ScreenNumber, Black); % open Window on Screen
     PriorityLevel = MaxPriority(Window);
     Priority(PriorityLevel);
-    [ScreenXpixels, ScreenYpixels] = Screen('WindowSize', Window); % get Window size
     [XCenter, YCenter] = RectCenter(Rect); % get the center of the coordinate Window
     Refresh = Screen('GetFlipInterval', Window);
     
@@ -149,23 +148,21 @@ function SocialCognitionTask()
             Face = fullfile(pwd, 'Faces', RunDesign{iTrial, FACEGENDER}, ...
                 RunDesign{iTrial, FACEFILENAME});
 
-            ImContext{iRun}{iTrial} = imread(Context, 'jpg');
-            ImFace{iRun}{iTrial} = imread(Face, 'png');
+            TmpContext = imread(Context, 'jpg');
+            TmpFace = imread(Face, 'png');
 
-            if size(ImFace{iRun}{iTrial}, 1) > PictureY
-                PictureY = size(ImFace{iRun}{iTrial}, 1);
+            if size(TmpFace, 1) > PictureY
+                PictureY = size(TmpFace, 1);
             end
 
-            TexContext{iRun}{iTrial} = Screen('MakeTexture', Window, ...
-                ImContext{iRun}{iTrial});
-            TexFace{iRun}{iTrial} = Screen('MakeTexture', Window, ...
-                ImFace{iRun}{iTrial});
+            TexContext{iRun}{iTrial} = Screen('MakeTexture', Window, TmpContext);
+            TexFace{iRun}{iTrial} = Screen('MakeTexture', Window, TmpFace);
         end
     end
     clear iRun iTrial
+
     PictureX = 256;
     ImBotLoc = floor(PictureY/2) + YCenter;
-    ImTopLoc = YCenter - ceil(PictureY/2);
     ImRightLoc = floor(PictureX/2) + XCenter;
     ImLeftLoc = XCenter - ceil(PictureX/2);
     FromXBar = ImLeftLoc - 90;
@@ -207,29 +204,30 @@ function SocialCognitionTask()
         end
     
         Stop = 0; 
-        BeginTime = GetSecs;
         for k = 1:size(RunDesign, 1)
             % Tex = Screen('MakeTexture', Window, ImContext{i}{k});
-            Screen('DrawTexture', Window, TexContext{i}{k}, [], [], 0);
+            Screen('DrawTexture', Window, TexContext{i}{k});
             ContextVbl = Screen('Flip', Window, Stop);
-            % Screen('Close', Tex);
+            if k == 1
+                BeginTime = ContextVbl;
+            end
             RunDesign{k, CONTEXTONSET} = ContextVbl - BeginTime;
 
             % Tex = Screen('MakeTexture', Window, ImFace{i}{k});
-            Screen('DrawTexture', Window, TexFace{i}{k}, [], [], 0);
-            CondVbl = Screen('Flip', Window, ContextVbl + 2 - Refresh, 1);
+            Screen('DrawTexture', Window, TexFace{i}{k});
+            CondVbl = Screen('Flip', Window, ContextVbl + 2 - Refresh * 0.5, 1);
             RunDesign{k, FACEONSET} = CondVbl - BeginTime;
 
             % [PictureY, PictureX] = size(ImFace{i}{k});
-            Screen('FillRect', Window, [0 0 255/2], ...
+            Screen('FillRect', Window, [0 0 0.5], ...
                 [FromXBar FromYBar ToXBar (ToYBar + 15)]);
             Screen('DrawText', Window, 'Negative', FromXBar - 203, FromYBar - 15); 
             Screen('DrawText', Window, 'Positive', ToXBar + 3, FromYBar - 15); 
-            BarVbl = Screen('Flip', Window, CondVbl + 1 - Refresh);
+            BarVbl = Screen('Flip', Window, CondVbl + 1 - Refresh * 0.5);
             % Screen('Close', Tex);
 
             KbQueueStart(DeviceIndex);
-            Stop = BarVbl + 4 - Refresh;
+            Stop = BarVbl + 4 - Refresh * 0.5;
             while GetSecs < Stop
                 [Pressed, FirstPress] = KbQueueCheck(DeviceIndex);
                 if Pressed
